@@ -181,14 +181,92 @@
             //var hostTeam = document.getElementById("a1"); alert(hostTeam);
             //hostTeam.innerHTML = "asdf";
 
-            const pot1 = [teams[0], teams[8], teams[1], teams[17], teams[20], teams[5], teams[13], teams[18]];
+            const groups = [];
+            for(let j = 0; j < 8; j++) {
+                groups[j] = [null, null, null, null];
+            }
+
+            const hostTeam = teams[0];
+            
+            const pot1 = [teams[8], teams[1], teams[17], teams[20], teams[5], teams[13], teams[18]];
             const pot2 = [teams[10], teams[31], teams[26], teams[9], teams[21], teams[4], teams[19], teams[27]];
             const pot3 = [teams[29], teams[15], teams[12], teams[28], teams[25], teams[14], teams[23], teams[2]];
             const pot4 = [teams[16], teams[11], teams[30], teams[3], teams[24], teams[22], teams[6], teams[7]];
-            console.log(pot4);
             
+            const groupSpots = [];
+            for(let i = 0; i < 8; i++) {
+                groupSpots[i] = [0, 1, 2, 3];
+            }
 
+            console.log(groupSpots);
 
+            //Get the teams from pot 1
+            //The team goes into each group when pulled
+            //Then determine position on group (ex. 1, 2, 3, 4)
+
+            //Place host team
+            const placeHostTeam = () => {
+                console.log("Placing host team");
+                groups[0][groupSpots[0].splice(0, 1)] = hostTeam;
+            }
+
+            const placeTeamIntoGroup = (pot, potNum) => {
+                const groupsAvailable = [0, 1, 2, 3, 4, 5, 6, 7];
+                if (potNum == 1) {
+                    placeHostTeam();
+                    groupsAvailable.splice(0, 1);
+                }
+
+                // TO DO: SHUFFLE ARRAY
+                
+                console.log('teams in pot: ' + pot.length);
+                for (const team of pot) {
+                    console.log(`team selected: ${JSON.stringify(team)}`);
+
+                    //PLACE TEAM IN A GROUP
+                    for (const group of groupsAvailable) {
+                        console.log(`try to place ${team.name} in group: ${group}`);
+                        // CHECK IF THERE ARE OTHER TEAMS FROM THE SAME CONFEDERATION IN GROUP
+                        const confedarationInGroup = groups[group].filter(t => {
+                            if(t != null)
+                            {
+                                return t.confedaration === team.confedaration;
+                            }
+                        });
+
+                        console.log(confedarationInGroup.length);
+                        let teamAdded = false;//flag if team is added
+
+                        if(confedarationInGroup.length == 0 || (team.confedaration == "UEFA" && confedarationInGroup.length == 1)){
+                            console.log(`${team.name} is going into group: ${group}`);
+                            
+                            //Lets find the a spot in the group
+                            const spotIndex = Math.floor((Math.random() * (groupSpots[group].length)));
+                            const spot = groupSpots[group].splice( spotIndex, 1);
+                            console.log(`going into spot: ${spot}`);
+                            console.log(groupSpots[group].length);
+                            
+                            groups[group][spot] = team;
+                            
+                            //remove group from groupAvailable
+                            groupsAvailable.splice(groupsAvailable.indexOf(group), 1);
+                            console.log(groupsAvailable);
+                            console.log(' ');
+                            teamAdded = true;
+                        }
+                        if(teamAdded) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            placeTeamIntoGroup(pot1, 1);
+            placeTeamIntoGroup(pot2, 2);
+            placeTeamIntoGroup(pot3, 3);
+            placeTeamIntoGroup(pot4, 4);
+
+            console.log(groups);
     </script>
 </body>
 </html>
