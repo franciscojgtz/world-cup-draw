@@ -234,14 +234,14 @@
                 if (potNum == 1) {
                     placeHostTeam();
                     groupsAvailable.splice(0, 1);
+                    console.log('');
                 }
       
-                // TO DO: SHUFFLE ARRAY
+                //SHUFFLE ARRAY
                 console.log("shuffle teams");
                 shuffle(pot);
-                
-                console.log('teams in pot: ' + pot.length);
-                for (const team of pot) {
+                const potClone = [...pot];
+                for (const team of potClone) {
                     console.log(`team selected: ${JSON.stringify(team)}`);
 
                     //PLACE TEAM IN A GROUP
@@ -254,18 +254,84 @@
                                 return t.confedaration === team.confedaration;
                             }
                         });
+                            
+                        //CHECK IF OTHER TEAMS IN POT CAN GO IN OTHER GROUPS
+                        const otherConfederaionsOk = function(groups, groupsAvailable, groupSpots, pot) {
+                            //POT1 IS SERVED FIRST, NO NEED TO CHECK
+                            if(potNum === 1) {
+                                return true;
+                            }
 
-                        console.log(confedarationInGroup.length);
+                            for(let i = 0; i < 100; i++) {
+                                //COPY GROUPS ARRAY
+                                const groupsX = groups.map(arr => arr.slice());
+                                const groupsAvailableX = [...groupsAvailable];
+                                const groupSpotsX = groupSpots.map(arr => arr.slice());
+                                const potX = [...pot];
+
+                                //PLACE TEAM IN GROUP IN FIRST SPOT AVAILABLE
+                                const spotX = groupSpotsX[group].splice( 0 , 1);
+                                groupsX[group][spotX] = team;
+                                groupsAvailableX.splice(groupsAvailableX.indexOf(group), 1);
+
+                                //Remove this team from pot
+                                potX.splice(potX.findIndex(t => {
+                                    return t.name === team.name;
+                                }), 1);
+
+                                //SIMULATE DRAW OF REMAINING TEAMS
+                                const potXX = [...potX];
+                                for (const teamX of potXX) {
+                                    for (const groupX of groupsAvailableX) {
+                                        // CHECK IF THERE ARE OTHER TEAMS FROM THE SAME CONFEDERATION IN GROUP
+                                        const confedarationInGroupX = groupsX[groupX].filter(t => {
+                                            if(t != null)
+                                            {
+                                                return t.confedaration === teamX.confedaration;
+                                            }
+                                        });
+
+                                        if(confedarationInGroupX.length == 0 || (teamX.confedaration == "UEFA" && confedarationInGroupX.length == 1)){
+                                            const spotX = groupSpotsX[groupX].splice( 0, 1);
+                                            groupsX[groupX][spotX] = teamX;
+                                            groupsAvailableX.splice(groupsAvailableX.indexOf(groupX), 1);
+
+                                            //remove team from pot
+                                            potX.splice(potX.findIndex(t => {
+                                                return t.name === teamX.name;
+                                            }), 1);
+                                            break;
+                                        }
+                                    }
+                                }    
+                                if(potX.length == 0) {
+                                    console.log('good');
+                                    return true;
+                                    break;
+                                } else {
+                                    console.log('retry');
+                                    console.log(potX.length); 
+                                }
+                            }
+
+                            return false;
+                        };
+
+                        
+
+                        //END CHECKING 
                         let teamAdded = false;//flag if team is added
 
-                        if(confedarationInGroup.length == 0 || (team.confedaration == "UEFA" && confedarationInGroup.length == 1)){
+                        if((confedarationInGroup.length == 0 || (team.confedaration == "UEFA" && confedarationInGroup.length == 1)) && otherConfederaionsOk([...groups], [...groupsAvailable], [...groupSpots], [...pot])){
+                            
+                            
                             console.log(`${team.name} is going into group: ${group}`);
                             
                             //Lets find the a spot in the group
                             const spotIndex = Math.floor((Math.random() * (groupSpots[group].length)));
                             const spot = groupSpots[group].splice( spotIndex, 1);
                             console.log(`going into spot: ${spot}`);
-                            console.log(groupSpots[group].length);
+                            // console.log(groupSpots[group].length);
                             
                             groups[group][spot] = team;
                             
@@ -273,9 +339,13 @@
                             groupsAvailable.splice(groupsAvailable.indexOf(group), 1);
                             console.log(groupsAvailable);
                             console.log(' ');
-                            teamAdded = true;
-                        }
-                        if(teamAdded) {
+
+                            //remove team from pot
+                            pot.splice(pot.findIndex(t => {
+                                return t.name === team.name;
+                            }), 1);
+
+                            // Team was added, break the loop
                             break;
                         }
                     }
