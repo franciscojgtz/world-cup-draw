@@ -169,7 +169,8 @@
                 rank: 10,
                 confedaration: "CONMEBOL"
             }];
-
+            
+            // Helper function
             const shuffle = (array) => {
                 var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -309,8 +310,6 @@
                                     return true;
                                     break;
                                 } else {
-                                    console.log('retry');
-                                    console.log(potX.length); 
                                 }
                             }
 
@@ -328,7 +327,10 @@
                             console.log(`${team.name} is going into group: ${group}`);
                             
                             //Lets find the a spot in the group
-                            const spotIndex = Math.floor((Math.random() * (groupSpots[group].length)));
+                            let spotIndex = 0;
+                            if (potNum !== 1) {
+                                spotIndex = Math.floor((Math.random() * (groupSpots[group].length)));
+                            }
                             const spot = groupSpots[group].splice( spotIndex, 1);
                             console.log(`going into spot: ${spot}`);
                             // console.log(groupSpots[group].length);
